@@ -127,6 +127,14 @@
       matchFileNames: ["application/backend/pyproject.toml"],
     },
 
+    // Group Python dependencies
+    {
+      enabled: true,
+      matchDatasources: ["pypi"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "Python dependencies"
+    },
+
     // Group GitHub Actions updates
     {
       enabled: true,
