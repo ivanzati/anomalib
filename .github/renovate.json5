@@ -54,6 +54,8 @@
       matchBaseBranches: ["main"],
       enabled: true,
       matchManagers: ["pep621"],
+      groupName: "Python dependencies",
+      groupSlug: "python-dependencies",
       schedule: ["* * * * 0"], // weekly
     },
 
@@ -125,14 +127,6 @@
       matchDatasources: ["pypi"],
       matchDepNames: ["ruff"],
       matchFileNames: ["application/backend/pyproject.toml"],
-    },
-
-    // Group Python dependencies
-    {
-      enabled: true,
-      matchDatasources: ["pypi"],
-      matchUpdateTypes: ["minor", "patch"],
-      groupName: "Python dependencies"
     },
 
     // Group GitHub Actions updates
