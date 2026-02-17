@@ -92,7 +92,7 @@ jobs:
           echo "Testing container with tag: $FIRST_TAG for device: $DEVICE"
 
           # Start the container in detached mode
-          CONTAINER_ID=$(docker run -d --rm -v .:/app/data -p 7860:7860 geti-tune-${DEVICE}:${FIRST_TAG})
+          CONTAINER_ID=$(docker run -d --rm -v ./data:/app/data -v ./logs:/app/logs -p 8000:8000 anomalib-studio-${DEVICE}:${FIRST_TAG})
           echo "Started container: $CONTAINER_ID"
 
           # Function to cleanup container on exit
@@ -102,7 +102,7 @@ jobs:
           }
           trap cleanup EXIT
 
-          TEST_URL="localhost:7860"
+          TEST_URL="localhost:8000"
           # Wait for container to be ready (max 60 seconds)
           echo "Waiting for container to be ready..."
           for i in {1..12}; do
@@ -119,7 +119,7 @@ jobs:
               sleep 5
           done
 
-          EXPECTED_TITLE="Geti Tune"
+          EXPECTED_TITLE="Anomalib Studio"
           echo "Checking HTML title..."
 
           HTML_CONTENT=$(curl -sf $TEST_URL)
@@ -148,7 +148,7 @@ jobs:
           echo "|-------|------|" >> image-sizes/${DEVICE}.md
 
           for TAG in $TAGS ; do
-            IMAGE="geti-tune-${DEVICE}:${TAG}"
+            IMAGE="anomalib-studio-${DEVICE}:${TAG}"
             if docker image inspect "$IMAGE" >/dev/null 2>&1; then
               size_bytes=$(docker image inspect "$IMAGE" --format='{{.Size}}')
               size_readable=$(numfmt --to=si --format "%.2f" "$size_bytes")
@@ -180,7 +180,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: ishworkh/container-image-artifact-upload@5d71a2417f0576fa11fe770fb04ece58c4587714
         with:
-          image: "geti-tune-${{ matrix.device }}:${{ steps.first-tag.outputs.tag }}"
+          image: "anomalib-studio-${{ matrix.device }}:${{ steps.first-tag.outputs.tag }}"
           retention_days: "3"
         continue-on-error: true
         env:
