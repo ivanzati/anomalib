@@ -124,3 +124,6 @@ jobs:
   docker-build:
     if: github.event.pull_request.draft != true
     uses: ./.github/workflows/_reusable-docker-build.yaml
+    permissions:
+      contents: read
+      pull-requests: write
