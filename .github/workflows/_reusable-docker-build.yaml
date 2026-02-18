@@ -28,7 +28,7 @@ jobs:
 
       - name: Check paths
         id: check_paths
-        uses: ./.github/actions/check-paths
+        uses: open-edge-platform/geti-ci/actions/check-paths@375de2eb018dae396c959f9b3a464f40271de969
         with:
           files_yaml: |
             test:
