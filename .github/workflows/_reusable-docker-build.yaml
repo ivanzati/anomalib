@@ -1,4 +1,36 @@
-name: Build
+# Docker Image Build Workflow
+#
+# This reusable workflow handles Docker image building,
+# providing a standardized build process with verification.
+#
+# Key Features:
+# - Docker image building
+# - Image verification
+# - Image size reporting
+# - Upload Image as artifact (for non-PR events)
+#
+# Process Stages:
+# 1. Check paths to determine if workflow should run (for PRs)
+# 2. Build Docker and upload as artifact
+#    - Buildimages for specified devices (cpu, xpu, gpu)
+#    - Run simple health checks on the built images
+#    - Upload document with size of images as artifact (for PRs)
+#    - Upload built images as artifacts (for non-PR events)
+# 3. Report image sizes as artifacts in PR comments
+#
+# Example Usage:
+# 1. Basic Build:
+#    jobs:
+#      build:
+#        uses: ./.github/workflows/_reusable-docker-build.yaml
+#
+# 2. Build with Verification:
+#    jobs:
+#      build:
+#        uses: ./.github/workflows/_reusable-docker-build.yaml
+#
+
+name: Reusable Docker Image Build
 
 on:
   workflow_call:
