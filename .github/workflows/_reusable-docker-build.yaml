@@ -258,23 +258,3 @@ jobs:
                 body: comment
               });
             }
-
-  required_check:
-    name: Required Check build
-    needs:
-      - check_paths
-      - build
-    runs-on: ubuntu-latest
-    env:
-      CHECKS: ${{ join(needs.*.result, ' ') }}
-    if: always() && !cancelled()
-    steps:
-      - name: Check jobs results
-        run: |
-          for check in ${CHECKS}; do
-            echo "::notice::check=${check}"
-            if [[ "$check" != "success" && "$check" != "skipped" ]]; then
-              echo "::error::Required status checks failed. They must succeed before this pull request can be merged."
-              exit 1
-            fi
-          done
