@@ -112,7 +112,7 @@ jobs:
           # Wait for container to be ready (max 60 seconds)
           echo "Waiting for container to be ready..."
           for i in {1..12}; do
-              if curl -sf http://$TEST_URL/health > /dev/null 2>&1; then
+              if curl -sf $TEST_URL/health > /dev/null 2>&1; then
                   echo "✅ Health check passed!"
                   break
               fi
