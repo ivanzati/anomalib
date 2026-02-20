@@ -10,24 +10,21 @@
 # - Upload Image as artifact (for non-PR events)
 #
 # Process Stages:
-# 1. Check paths to determine if workflow should run (for PRs)
-# 2. Build Docker and upload as artifact
+# 1. Build Docker images and upload as artifacts
 #    - Build images for specified devices (cpu, xpu, gpu)
 #    - Run simple health checks on the built images
 #    - Upload document with size of images as artifact (for PRs)
 #    - Upload built images as artifacts (for non-PR events)
-# 3. Report image sizes as artifacts in PR comments
+# 2. Report image sizes as artifacts in PR comments
 #
 # Example Usage:
-# 1. Basic Build:
+# 1. Build docker images:
 #    jobs:
 #      build:
 #        uses: ./.github/workflows/_reusable-docker-build.yaml
-#
-# 2. Build with Verification:
-#    jobs:
-#      build:
-#        uses: ./.github/workflows/_reusable-docker-build.yaml
+#        permissions:
+#          contents: read
+#          pull-requests: write
 #
 
 name: Reusable Docker Image Build
@@ -74,6 +71,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
+          images: anomalib-studio-${{ matrix.device }}
           tags: |
             type=sha
             type=ref,event=branch
@@ -115,7 +113,7 @@ jobs:
           # Wait for container to be ready (max 60 seconds)
           echo "Waiting for container to be ready..."
           for i in {1..12}; do
-              if curl -sf $TEST_URL/health > /dev/null 2>&1; then
+              if curl -sf http://$TEST_URL/health > /dev/null 2>&1; then
                   echo "✅ Health check passed!"
                   break
               fi
@@ -192,8 +190,6 @@ jobs:
           image: "anomalib-studio-${{ matrix.device }}:${{ steps.first-tag.outputs.tag }}"
           retention_days: "3"
         continue-on-error: true
-        env:
-          FIRST_TAG: ${{ steps.first-tag.outputs.tag }}
 
   comment-sizes:
     name: Comment PR with all image sizes
