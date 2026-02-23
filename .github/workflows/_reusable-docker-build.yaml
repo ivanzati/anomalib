@@ -215,8 +215,8 @@ jobs:
               issue_number: context.issue.number,
             });
 
-            const existingComment = comments.data.find(comment =>
-              comment.body.includes('## Docker Image Sizes')
+            const existingComment = comments.data.find(commentItem =>
+              commentItem.body.includes('## Docker Image Sizes')
             );
 
             if (existingComment) {
