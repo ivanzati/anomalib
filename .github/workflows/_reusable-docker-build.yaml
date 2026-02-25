@@ -7,14 +7,12 @@
 # - Docker image building
 # - Image verification
 # - Image size reporting
-# - Upload Image as artifact (for non-PR events)
 #
 # Process Stages:
-# 1. Build Docker images and upload as artifacts
-#    - Build images for specified devices (cpu, xpu, gpu)
+# 1. Build Docker images
+#    - Build images for specified devices (cpu, xpu, cuda)
 #    - Run simple health checks on the built images
 #    - Upload document with size of images as artifact (for PRs)
-#    - Upload built images as artifacts (for non-PR events)
 # 2. Report image sizes as artifacts in PR comments
 #
 # Example Usage:
@@ -41,11 +39,11 @@ concurrency:
 
 jobs:
   build:
-    name: Build and upload docker image (${{ matrix.device }})
+    name: Build and upload docker image size (${{ matrix.device }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        device: [cpu, xpu, gpu]
+        device: [cpu, xpu, cuda]
     permissions:
       contents: read
     steps:
@@ -179,6 +177,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
+      # write permissions are required to update PR comments with image sizes
       pull-requests: write
     continue-on-error: true
     steps:

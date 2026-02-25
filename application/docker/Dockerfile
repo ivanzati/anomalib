@@ -81,9 +81,9 @@ EXPOSE 8000
 CMD ["sh", "-c", "exec ./run.sh"]
 
 #------------------------------------------
-# Anomalib Studio GPU intermediate stage to install CUDA dependencies
+# Anomalib Studio CUDA intermediate stage to install CUDA dependencies
 #------------------------------------------
-FROM anomalib-studio-base AS anomalib-studio-gpu-base
+FROM anomalib-studio-base AS anomalib-studio-cuda-base
 
 RUN apt-get update  \
     && apt-get install -y --no-install-recommends wget=1.25.0-2 \
@@ -105,9 +105,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 #------------------------------------------
-# Anomalib Studio GPU intermediate stage to cleanup CUDA non-distributable dependencies
+# Anomalib Studio CUDA intermediate stage to cleanup CUDA non-distributable dependencies
 #------------------------------------------
-FROM anomalib-studio-gpu-base AS anomalib-studio-gpu-cleanup
+FROM anomalib-studio-cuda-base AS anomalib-studio-cuda-cleanup
 
 # CUDA EULA Compliance Cleanup
 RUN echo "Removing non-redistributable CUDA components per NVIDIA EULA..." && \
@@ -182,10 +182,10 @@ RUN echo "Removing non-redistributable CUDA components per NVIDIA EULA..." && \
 #------------------------------------------
 # Anomalib Studio CUDA version
 #------------------------------------------
-FROM anomalib-studio-base AS anomalib-studio-gpu
+FROM anomalib-studio-base AS anomalib-studio-cuda
 
-COPY --link --from=anomalib-studio-gpu-cleanup --chown=${UID} /usr/local /usr/local
-COPY --link --from=anomalib-studio-gpu-cleanup --chown=${UID} ${PYTHONPATH} ${PYTHONPATH}
+COPY --link --from=anomalib-studio-cuda-cleanup --chown=${UID} /usr/local /usr/local
+COPY --link --from=anomalib-studio-cuda-cleanup --chown=${UID} ${PYTHONPATH} ${PYTHONPATH}
 
 WORKDIR /app/application/backend
 
