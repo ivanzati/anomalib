@@ -64,6 +64,7 @@ on:
           - "bandit,semgrep"
           - "bandit,semgrep,trivy"
           - "bandit,semgrep,trivy,zizmor"
+          - "bandit,semgrep,trivy,zizmor,trivy-image"
         default: "bandit,semgrep,trivy,zizmor"
       scan-scope:
         description: "Scan scope"
@@ -103,29 +104,8 @@ jobs:
     with:
       # For scheduled runs, use full scan configuration
       tools: ${{ inputs.tools || 'bandit,semgrep,trivy,zizmor' }}
-      scan-scope: ${{ inputs.scan-scope || 'all' }}
+      scan-scope: ${{ github.event_name == 'schedule' && 'trivy-image' || inputs.scan-scope || 'all' }}
+
       severity-level: ${{ inputs.severity-level || 'LOW' }}
       confidence-level: ${{ inputs.confidence-level || 'LOW' }}
       fail-on-findings: false # reports only
-
-  trivy-image-scan:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        ai-device: [cpu, cuda, xpu]
-    steps:
-      - name: Run container image scan (${{ matrix.ai-device }})
-        uses: open-edge-platform/geti-ci/actions/trivy@9b1ef60a8b2b802da428621e192c322960f4b3d5
-        with:
-          artifact-name: "trivy-scan-container-${{ matrix.ai-device }}"
-          scan_type: "image"
-          scan_target: "ghcr.io/ivanzati/anomalib-studio-${{ matrix.ai-device }}:main"
-          scan-scope: all
-          severity: "LOW"
-          scanners: "vuln,secret,config"
-          format: "table"
-          timeout: "15m"
-          ignore_unfixed: "true"
