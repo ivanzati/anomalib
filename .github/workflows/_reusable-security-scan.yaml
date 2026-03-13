@@ -159,7 +159,7 @@ jobs:
         ai-device: [cpu, cuda, xpu]
     steps:
       - name: Run container image scan (${{ matrix.ai-device }})
-        uses: open-edge-platform/geti-ci/actions/trivy@9b1ef60a8b2b802da428621e192c322960f4b3d5
+        uses: open-edge-platform/geti-ci/actions/trivy@cc6fbe840db6ebd16ebd18d409f475bff5a8c182
         with:
           artifact-name: "trivy-scan-container-${{ matrix.ai-device }}"
           scan_type: "image"
