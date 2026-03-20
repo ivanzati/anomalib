@@ -26,11 +26,11 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        ai-device: ["xpu"]
+        device: ["xpu"]
     env:
       RC_TAG: ${{ inputs.rc_tag }}
       EXPECTED_SHA: ${{ inputs.sha }}
-      DEVICE: ${{ matrix.ai-device }}
+      DEVICE: ${{ matrix.device }}
     steps:
       - name: Normalize and validate inputs
         env:
@@ -106,7 +106,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.RELEASE_TAG }}
 
-      - name: Promote application image for ${{ matrix.ai-device }}
+      - name: Promote application image for ${{ matrix.device }}
         run: |
           SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RC_TAG}"
           TARGET_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RELEASE_TAG}"
