@@ -1,4 +1,4 @@
-name: Promote RC Application Images
+name: Promote Application RC Images
 
 on:
   workflow_dispatch:
@@ -102,14 +102,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
-          images: ghcr.io/ivanzati/geti-instant-learn-${{ matrix.device }}
+          images: ghcr.io/ivanzati/anomalib-studio-${{ matrix.device }}
           tags: |
             type=raw,value=${{ env.RELEASE_TAG }}
 
       - name: Promote application image for ${{ matrix.ai-device }}
         run: |
-          SOURCE_IMAGE="ghcr.io/ivanzati/geti-instant-learn-${DEVICE}:${RC_TAG}"
-          TARGET_IMAGE="ghcr.io/ivanzati/geti-instant-learn-${DEVICE}:${RELEASE_TAG}"
+          SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RC_TAG}"
+          TARGET_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RELEASE_TAG}"
 
           echo "Pulling ${SOURCE_IMAGE}"
           docker pull "${SOURCE_IMAGE}"
