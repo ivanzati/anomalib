@@ -193,12 +193,17 @@ jobs:
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        env:
+          RELEASE_TAG: ${{ needs.validate.outputs.release_tag }}
         with:
           images: ghcr.io/ivanzati/anomalib-studio-${{ matrix.device }}
           tags: |
             type=raw,value=${{ env.RELEASE_TAG }}
 
       - name: Promote application image for ${{ matrix.device }}
+        env:
+          RC_TAG: ${{ needs.validate.outputs.rc_tag }}
+          RELEASE_TAG: ${{ needs.validate.outputs.release_tag }}
         run: |
           SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RC_TAG}"
           TARGET_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RELEASE_TAG}"
@@ -232,8 +237,7 @@ jobs:
             echo "### Git"
             echo "- Tag \`${RELEASE_TAG}\` created at commit \`${RC_SHA}\`"
             echo ""
-            echo "### Docker Images"
-            echo "- \`grafana/beyla:${DOCKER_PATCH_TAG}\`, \`grafana/beyla:${DOCKER_MINOR_TAG}\`, \`grafana/beyla:${DOCKER_MAJOR_TAG}\`"
-            echo "- \`grafana/beyla-k8s-cache:${DOCKER_PATCH_TAG}\`, \`grafana/beyla-k8s-cache:${DOCKER_MINOR_TAG}\`, \`grafana/beyla-k8s-cache:${DOCKER_MAJOR_TAG}\`"
+            echo "### Docker Image"
+            echo "- \`ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RELEASE_TAG}\`"
             echo ""
           } >> "${GITHUB_STEP_SUMMARY}"
