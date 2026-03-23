@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: "prod"
     permissions:
-      contents: read
+      contents: write # Permission to push release tag to git
       packages: write # Permission to push packages to GHCR
       id-token: write # Permission to request OIDC token for signing images
     timeout-minutes: 30
