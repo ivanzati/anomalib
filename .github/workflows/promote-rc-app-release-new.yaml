@@ -103,13 +103,13 @@ jobs:
             echo "::notice::Release tag ${RELEASE_TAG} already exists at the correct commit (idempotent re-run)"
           fi
 
-          echo "::set-output name=rc_tag::${RC_TAG}"
-          echo "::set-output name=rc_sha::${RC_SHA}"
-          echo "::set-output name=release_tag::${RELEASE_TAG}"
-          echo "::set-output name=docker_rc_tag::${DOCKER_RC_TAG}"
-          echo "::set-output name=docker_patch_tag::${DOCKER_PATCH_TAG}"
-          echo "::set-output name=docker_minor_tag::${DOCKER_MINOR_TAG}"
-          echo "::set-output name=docker_major_tag::${DOCKER_MAJOR_TAG}"
+          echo "rc_tag=${RC_TAG}" >> "$GITHUB_OUTPUT"
+          echo "rc_sha=${RC_SHA}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "docker_rc_tag=${DOCKER_RC_TAG}" >> "$GITHUB_OUTPUT"
+          echo "docker_patch_tag=${DOCKER_PATCH_TAG}" >> "$GITHUB_OUTPUT"
+          echo "docker_minor_tag=${DOCKER_MINOR_TAG}" >> "$GITHUB_OUTPUT"
+          echo "docker_major_tag=${DOCKER_MAJOR_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Print promotion summary
         env:
@@ -169,7 +169,7 @@ jobs:
           RC_SHA: ${{ needs.validate.outputs.rc_sha }}
         run: |
           set -euo pipefail
-          if $(gh api "repos/${{ github.repository }}/git/ref/tags/${RELEASE_TAG}" --silent 2>/dev/null); then
+          if gh api "repos/${{ github.repository }}/git/ref/tags/${RELEASE_TAG}" --silent >/dev/null 2>&1; then
             EXISTING_SHA=$(gh api "repos/${{ github.repository }}/git/ref/tags/${RELEASE_TAG}" --jq '.object.sha')
             if [[ "${EXISTING_SHA}" == "${RC_SHA}" ]]; then
               echo "Tag ${RELEASE_TAG} already exists at ${RC_SHA}, skipping creation"
@@ -196,18 +196,19 @@ jobs:
         id: meta
         uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         env:
+          DOCKER_RC_TAG: ${{ needs.validate.outputs.docker_rc_tag }}
           DOCKER_PATCH_TAG: ${{ needs.validate.outputs.docker_patch_tag }}
         with:
           images: ghcr.io/ivanzati/anomalib-studio-${{ matrix.device }}
           tags: |
-            type=raw,value=${{ env.DOCKER_PATCH_TAG }}
+            type=raw,value=${{ env.DOCKER_RC_TAG }}
 
       - name: Promote application image for ${{ matrix.device }}
         env:
-          RC_TAG: ${{ needs.validate.outputs.rc_tag }}
+          DOCKER_RC_TAG: ${{ needs.validate.outputs.docker_rc_tag }}
           DOCKER_PATCH_TAG: ${{ needs.validate.outputs.docker_patch_tag }}
         run: |
-          SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${RC_TAG}"
+          SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_RC_TAG}"
           TARGET_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_PATCH_TAG}"
 
           echo "Pulling ${SOURCE_IMAGE}"
