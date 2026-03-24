@@ -219,6 +219,7 @@ jobs:
           DOCKER_PATCH_TAG: ${{ needs.validate.outputs.docker_patch_tag }}
           DOCKER_MINOR_TAG: ${{ needs.validate.outputs.docker_minor_tag }}
           DOCKER_MAJOR_TAG: ${{ needs.validate.outputs.docker_major_tag }}
+          FORCE: ${{ inputs.force }}
         run: |
           set -euo pipefail
           for IMAGE in ghcr.io/ivanzati/anomalib-studio-${DEVICE}; do
