@@ -1,4 +1,4 @@
-name: Promote Application RC Images - New
+name: Promote Application RC Images
 
 on:
   workflow_dispatch:
@@ -93,6 +93,11 @@ jobs:
           RC_SHA=$(git rev-parse "refs/tags/${RC_TAG}^{commit}")
           echo "RC SHA:           ${RC_SHA}"
 
+          # Verify RC SHA matches expected SHA input
+          if [[ "${RC_SHA}" != "${EXPECTED_SHA}" ]]; then
+            echo "::error::RC tag ${RC_TAG} points to ${RC_SHA} but expected ${EXPECTED_SHA}"
+            exit 1
+          fi
           # If release tag already exists, verify it points to the same commit (idempotent re-run)
           if git rev-parse "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
             EXISTING_SHA=$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")
@@ -138,29 +143,19 @@ jobs:
               echo "> **Dry run mode:** No changes will be made."
             fi
           } >> "${GITHUB_STEP_SUMMARY}"
-  promote-docker:
+
+  create-release-tag:
     needs: validate
     if: inputs.dry_run == false
-    name: Promote RC image to release image
+    name: Create release git tag
     runs-on: ubuntu-latest
-    environment: "prod"
     permissions:
       contents: write # Permission to push release tag to git
-      packages: write # Permission to push packages to GHCR
-      id-token: write # Permission to request OIDC token for signing images
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        device: ["xpu"]
-    env:
-      RC_TAG: ${{ inputs.rc_tag }}
-      DEVICE: ${{ matrix.device }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-          persist-credentials: 'false'
-          submodules: 'recursive'
+          persist-credentials: false
 
       - name: Create release git tag
         env:
@@ -185,6 +180,23 @@ jobs:
             echo "Tag ${RELEASE_TAG} created successfully"
           fi
 
+  promote-docker:
+    needs: [validate, create-release-tag]
+    if: inputs.dry_run == false
+    name: Promote RC image to release image
+    runs-on: ubuntu-latest
+    environment: "prod"
+    permissions:
+      packages: write # Permission to push packages to GHCR
+      id-token: write # Permission to request OIDC token for signing images
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        device: [cpu, xpu, cuda]
+    env:
+      RC_TAG: ${{ inputs.rc_tag }}
+      DEVICE: ${{ matrix.device }}
+    steps:
       - name: Log in to GHCR
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
@@ -234,7 +246,7 @@ jobs:
           done
 
       - name: Sign Docker image
-        uses: open-edge-platform/geti-ci/actions/sign-image@9b1ef60a8b2b802da428621e192c322960f4b3d5
+        uses: ivanzati/geti-ci/actions/sign-image@9b1ef60a8b2b802da428621e192c322960f4b3d5
         with:
           image-uri: ghcr.io/ivanzati/anomalib-studio-${{ matrix.device }}:${{ needs.validate.outputs.docker_patch_tag }}
 
@@ -250,10 +262,9 @@ jobs:
           {
             echo "## Promotion Complete"
             echo ""
-            echo "### Git"
-            echo "- Tag \`${RELEASE_TAG}\` created at commit \`${RC_SHA}\`"
-            echo ""
-            echo "### Docker Image"
+            echo "### Docker Images"
             echo "- \`ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_PATCH_TAG}\`"
+            echo "- \`ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_MINOR_TAG}\`"
+            echo "- \`ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_MAJOR_TAG}\`"
             echo ""
           } >> "${GITHUB_STEP_SUMMARY}"
