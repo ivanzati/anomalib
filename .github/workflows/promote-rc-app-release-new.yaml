@@ -246,7 +246,7 @@ jobs:
           done
 
       - name: Sign Docker image
-        uses: ivanzati/geti-ci/actions/sign-image@9b1ef60a8b2b802da428621e192c322960f4b3d5
+        uses: open-edge-platform/geti-ci/actions/sign-image@9b1ef60a8b2b802da428621e192c322960f4b3d5
         with:
           image-uri: ghcr.io/ivanzati/anomalib-studio-${{ matrix.device }}:${{ needs.validate.outputs.docker_patch_tag }}
 
