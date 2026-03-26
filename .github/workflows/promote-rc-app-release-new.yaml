@@ -214,8 +214,8 @@ jobs:
           FORCE: ${{ inputs.force }}
         run: |
           set -euo pipefail
-          SOURCE_IMAGE="ghcr.io/open-edge-platform/anomalib-studio-${DEVICE}:${DOCKER_RC_TAG}"
-          TARGET_IMAGE="ghcr.io/open-edge-platform/anomalib-studio-${DEVICE}:${DOCKER_PATCH_TAG}"
+          SOURCE_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_RC_TAG}"
+          TARGET_IMAGE="ghcr.io/ivanzati/anomalib-studio-${DEVICE}:${DOCKER_PATCH_TAG}"
 
           echo "Pulling ${SOURCE_IMAGE}"
           docker pull "${SOURCE_IMAGE}"
