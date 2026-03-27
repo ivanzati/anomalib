@@ -227,13 +227,14 @@ jobs:
     needs: [validate, publish-rc]
     permissions:
       contents: read # Checkout code
-    uses: ./.github/workflows/tauri-build.yaml
-    with:
-      rc_version: ${{ needs.validate.outputs.rc_version }}
-    secrets:
-      MSIX_SIGN_CERTIFICATE: ${{ secrets.MSIX_SIGN_CERTIFICATE }}
-      MSIX_SIGN_CERTIFICATE_PASSWORD: ${{ secrets.MSIX_SIGN_CERTIFICATE_PASSWORD }}
     strategy:
       fail-fast: false
       matrix:
         accelerator: [cpu, xpu, cu124]
+    uses: ./.github/workflows/tauri-build.yaml
+    with:
+      rc_version: ${{ needs.validate.outputs.rc_version }}
+      accelerator: ${{ matrix.accelerator }}
+    secrets:
+      MSIX_SIGN_CERTIFICATE: ${{ secrets.MSIX_SIGN_CERTIFICATE }}
+      MSIX_SIGN_CERTIFICATE_PASSWORD: ${{ secrets.MSIX_SIGN_CERTIFICATE_PASSWORD }}
