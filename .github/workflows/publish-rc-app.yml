@@ -233,7 +233,7 @@ jobs:
       matrix:
         accelerator: [cpu, xpu, cu124]
     concurrency:
-      group: ${{ format('tauri-build-{0}', needs.validate.outputs.rc_version) }}
+      group: ${{ format('tauri-build-{0}-{1}', needs.validate.outputs.rc_version, matrix.accelerator) }}
       cancel-in-progress: false
       
     uses: ./.github/workflows/tauri-build.yaml
