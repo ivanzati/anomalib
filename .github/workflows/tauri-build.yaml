@@ -72,8 +72,8 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name != 'workflow_call' && format('{0}-{1}', github.workflow, github.ref) || '' }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
 
 jobs:
   # build-linux:
