@@ -224,6 +224,7 @@ jobs:
           EOF
 
   trigger-tauri-build:
+    name: Trigger Tauri build for RC
     needs: [validate, publish-rc]
     permissions:
       contents: read # Checkout code
@@ -231,6 +232,10 @@ jobs:
       fail-fast: false
       matrix:
         accelerator: [cpu, xpu, cu124]
+    concurrency:
+      group: ${{ format('tauri-build-{0}', needs.validate.outputs.rc_version) }}
+      cancel-in-progress: false
+      
     uses: ./.github/workflows/tauri-build.yaml
     with:
       rc_version: ${{ needs.validate.outputs.rc_version }}
