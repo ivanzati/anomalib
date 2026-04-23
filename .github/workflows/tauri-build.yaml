@@ -72,7 +72,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.event_name != 'workflow_call' && format('{0}-{1}', github.workflow, github.ref) || format('tauri-build-{0}-{1}', inputs.rc_version, inputs.accelerator) }}
+  group: ${{ github.event_name == 'workflow_call' && format('tauri-build-{0}-{1}', inputs.rc_version, inputs.accelerator) || format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
 
 jobs:
