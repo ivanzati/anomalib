@@ -224,6 +224,10 @@ jobs:
           EOF
 
   trigger-tauri-build:
+    concurrency:
+      group: tauri-build-${{ matrix.accelerator }}-${{ github.ref }}
+      cancel-in-progress: false
+
     name: Trigger Tauri build for RC
     needs: [validate, publish-rc]
     permissions:
