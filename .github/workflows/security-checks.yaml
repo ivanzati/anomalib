@@ -102,6 +102,7 @@ jobs:
     uses: ./.github/workflows/_reusable-security-scan.yaml
     permissions:
       contents: read
+      packages: read # needed to pull images for scanning
       security-events: write # needed to upload results
     with:
       # For scheduled runs, use full scan configuration
