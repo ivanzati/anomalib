@@ -206,6 +206,95 @@ COPY --link --from=anomalib-studio-cuda-cleanup ${PYTHONPATH} ${PYTHONPATH}
 
 WORKDIR /app/application/backend
 
+#------------------------------------------
+# Anomalib Studio CUDA intermediate stage to cleanup CUDA non-distributable dependencies
+#------------------------------------------
+FROM anomalib-studio-cuda-base AS anomalib-studio-cuda-cleanup
+
+# CUDA EULA Compliance Cleanup
+RUN echo "Removing non-redistributable CUDA components per NVIDIA EULA..." && \
+    # Define search paths including venv
+    SEARCH_PATHS="/usr /opt" && \
+     # Include PYTHONPATH in search paths if it is set
+    if [ -n "${PYTHONPATH}" ]; then \
+    SEARCH_PATHS="$SEARCH_PATHS ${PYTHONPATH}"; \
+    fi && \
+    # Add any detected venvs from PYTHONPATH (if set)
+    for venv in $(find ${PYTHONPATH:+${PYTHONPATH}} -name "site-packages" -type d 2>/dev/null | sed 's|/lib/python[0-9.]*/site-packages||' | sort -u); do \
+    if [ -d "$venv" ]; then \
+    SEARCH_PATHS="$SEARCH_PATHS $venv"; \
+    fi; \
+    done
+
+    echo "Cleaning CUDA components in: $SEARCH_PATHS" && \
+    # Remove development tools (non-redistributable)
+    find $SEARCH_PATHS -type f \( \
+    -name "nvcc" -o \
+    -name "cuda-gdb" -o \
+    -name "nvprof" -o \
+    -name "nvdisasm" -o \
+    -name "cuobjdump" -o \
+    -name "cuda-memcheck" -o \
+    -name "nsight*" -o \
+    -name "compute-sanitizer" -o \
+    -name "ncu" -o \
+    -name "nv-nsight-cu*" \
+    \) -delete 2>/dev/null || true && \
+    # Remove headers and include directories (non-redistributable)
+    find $SEARCH_PATHS -type d \( \
+    -name "include" -o \
+    -name "headers" \
+    \) -path "*cuda*" -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove NVIDIA package includes specifically
+    find $SEARCH_PATHS -type d -path "*/nvidia/*/include" -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove static libraries (typically non-redistributable)
+    find $SEARCH_PATHS -name "*.a" -path "*cuda*" -delete 2>/dev/null || true && \
+    find $SEARCH_PATHS -name "*.a" -path "*nvidia*" -delete 2>/dev/null || true && \
+    # Remove documentation and samples (non-redistributable)
+    find $SEARCH_PATHS -type d \( \
+    -name "doc" -o \
+    -name "docs" -o \
+    -name "documentation" -o \
+    -name "samples" -o \
+    -name "sample" \
+    \) -path "*cuda*" -exec rm -rf {} + 2>/dev/null || true && \
+    # Remove specific non-redistributable CUPTI components
+    find $SEARCH_PATHS -type f \( \
+    -name "libcheckpoint.so*" -o \
+    -name "libnvperf_host.so*" -o \
+    -name "libnvperf_target.so*" -o \
+    -name "libpcsamplingutil.so*" \
+    \) -path "*cupti*" -delete 2>/dev/null || true && \
+    # Remove cuSolver MG libraries (enterprise feature)
+    find $SEARCH_PATHS -name "libcusolverMg.so*" -delete 2>/dev/null || true && \
+    # Remove Triton NVIDIA backends (development components)
+    find $SEARCH_PATHS -type d -path "*/triton/backends/nvidia" -exec rm -rf {} + 2>/dev/null || true && \
+    # System package cleanup
+    apt-get remove -y \
+    cuda-compiler-* \
+    cuda-cuobjdump-* \
+    cuda-gdb-* \
+    cuda-memcheck-* \
+    cuda-nvcc-* \
+    cuda-nvdisasm-* \
+    cuda-nvprof-* \
+    cuda-sanitizer-* \
+    cuda-documentation-* \
+    cuda-samples-* \
+    nsight-* \
+    2>/dev/null || true && \
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+#------------------------------------------
+# Anomalib Studio CUDA version
+#------------------------------------------
+FROM anomalib-studio-base AS anomalib-studio-cuda
+
+COPY --link --from=anomalib-studio-cuda-cleanup /usr/local /usr/local
+COPY --link --from=anomalib-studio-cuda-cleanup ${PYTHONPATH} ${PYTHONPATH}
+
+WORKDIR /app/application/backend
+
 EXPOSE 8000
 
 # nosemgrep: dockerfile.security.missing-user.missing-user # will fix later
